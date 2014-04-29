@@ -1,0 +1,15 @@
+#ignore .idea
+.idea
+
+#ignore .gitignore
+.gitignore
+
+#ignore .iml
+*.iml
+
+#ignore .properties
+*.properties
+
+#ignore filder
+gen
+out
