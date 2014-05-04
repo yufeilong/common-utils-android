@@ -4,9 +4,15 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
+import android.util.Log;
 
 /**
  * Created by Administrator on 2014/4/29.
@@ -14,13 +20,14 @@ import android.text.TextUtils;
 public class BaseUtil {
     private static Context context;
     private static BaseUtil instance = null;
+    private static  float batteryLevel = -1;
+
+    private static final String LOG_TAG = "base.utils";
+
 
     private BaseUtil(Context cx) {
         this.context = cx;
     }
-
-
-    private static  float batteryLevel = -1;
 
     /**
      * 获取设备名称（型号）
@@ -148,6 +155,128 @@ public class BaseUtil {
         }
 
         return batteryLevel;
+    }
+
+    /**
+     * 获取应用包名
+     *
+     * @return
+     */
+    private String getPackageName()
+    {
+        String packageName = "";
+
+        packageName = context.getPackageName();
+
+        if(TextUtils.isEmpty(packageName))
+        {
+            Log.e(LOG_TAG, "getPackageName error !!!");
+        }
+
+        return packageName;
+    }
+
+    /**
+     * 获取应用版本信息
+     *
+     * @return 应用程序版本号
+     */
+    private String getVersionName()
+    {
+        String versionName = "";
+
+        String packageName = getPackageName();
+
+        PackageManager pm = context.getPackageManager();
+
+        try
+        {
+            PackageInfo packageInfo = pm.getPackageInfo(packageName, 0);
+
+            versionName = packageInfo.versionName;
+        }
+        catch (PackageManager.NameNotFoundException e)
+        {
+            Log.e(LOG_TAG, "getVersionName error !!!");
+        }
+
+        return versionName;
+    }
+
+    /**
+     * 获取应用Version Code
+     *
+     * @return 应用程序版本信息
+     *
+     * 该属性主要用于在应用市场升级使用（对消费者不可见）
+     */
+    private String getVersionCode()
+    {
+        String versionCode = "";
+
+        String packageName = getPackageName();
+
+        PackageManager pm = context.getPackageManager();
+
+        try
+        {
+            PackageInfo packageInfo = pm.getPackageInfo(packageName, 0);
+
+            versionCode = String.valueOf(packageInfo.versionCode);
+
+        }
+        catch (PackageManager.NameNotFoundException e)
+        {
+            Log.e(LOG_TAG, "getVersionName error !!!");
+        }
+
+        return versionCode;
+    }
+
+    /**
+     * 获取应用程序名称
+     * @return 应用程序名称
+     */
+    public String getApplicationName()
+    {
+        String applicationName = "";
+        ApplicationInfo applicationInfo = null;
+        PackageManager pm = context.getPackageManager();
+        try
+        {
+            applicationInfo = pm.getApplicationInfo(getPackageName(), 0);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
+        applicationName = (String) pm.getApplicationLabel(applicationInfo);
+
+        return applicationName;
+    }
+
+    /**
+     * 获取网络状态
+     *
+     * @return
+     */
+    private static boolean networkReachable()
+    {
+        boolean bRet = false;
+
+        try
+        {
+            ConnectivityManager conn = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo netInfo = conn.getActiveNetworkInfo();
+            bRet = (null == netInfo) ? false : netInfo.isAvailable();
+        }
+        catch (Exception e)
+        {
+            Log.e(LOG_TAG, "get network state error", e);
+        }
+
+        return bRet;
     }
 
     public static void setContext(Context context) {
